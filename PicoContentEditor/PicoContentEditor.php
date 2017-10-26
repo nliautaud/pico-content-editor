@@ -2,7 +2,7 @@
 /**
  * A content editor plugin for Pico, using ContentTools.
  *
- * This plugin depends on PicoUsers plugin for authentification
+ * Supports PicoUsers plugin for authentification
  * {@link https://github.com/nliautaud/pico-users}
  * 
  * @author	Nicolas Liautaud
@@ -16,8 +16,6 @@ ini_set('display_errors',1);
 error_reporting(-1); 
 class PicoContentEditor extends AbstractPicoPlugin
 {
-    protected $dependsOn = array('PicoUsers');
-
     private $data;
 
     /**
