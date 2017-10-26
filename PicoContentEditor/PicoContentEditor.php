@@ -45,10 +45,17 @@ class PicoContentEditor extends AbstractPicoPlugin
         $this->save = isset($_POST['PicoContentEditor']);
         if (!$this->save) return;
 
+        // check authentification with PicoUsers
+        if (class_exists('PicoUsers')) {
+            $PicoUsers = $this->getPlugin('PicoUsers');
+            $canSave = $PicoUsers->is_authorized('PicoContentEditor.save');
+            if (!$canSave) return;
+        }
+
         $this->data = new stdClass();
         $this->data->regions = json_decode($_POST['PicoContentEditor']);
         $this->data->request = $this->getRequestUrl();
-        
+
         // replace editable blocks in page file content
         $rawPageContent = $this->getRawContent();
         $newPageContent = self::editRegions($rawPageContent, $this->data->regions, $editsCount);
