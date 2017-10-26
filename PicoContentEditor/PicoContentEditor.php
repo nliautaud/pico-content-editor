@@ -16,7 +16,7 @@ ini_set('display_errors',1);
 error_reporting(-1); 
 class PicoContentEditor extends AbstractPicoPlugin
 {
-    private $data;
+    private $response;
 
     /**
      * Triggered after Pico has read all known pages
@@ -43,26 +43,50 @@ class PicoContentEditor extends AbstractPicoPlugin
         $this->save = isset($_POST['PicoContentEditor']);
         if (!$this->save) return;
 
+        $this->response = new stdClass();
+
         // check authentification with PicoUsers
         if (class_exists('PicoUsers')) {
             $PicoUsers = $this->getPlugin('PicoUsers');
-            $canSave = $PicoUsers->is_authorized('PicoContentEditor.save');
-            if (!$canSave) return;
+            $canSave = $PicoUsers->hasRight('PicoContentEditor/save');
+            if (!$canSave) {
+                $this->setStatus(false, 'Authentification error');
+                return;
+            }
         }
 
-        $this->data = new stdClass();
-        $this->data->regions = json_decode($_POST['PicoContentEditor']);
-        $this->data->request = $this->getRequestUrl();
+        $regions = json_decode($_POST['PicoContentEditor']);
+        $request = $this->getRequestUrl();
 
         // replace editable blocks in page file content
+        $page = $this->getRequestFile();
         $rawPageContent = $this->getRawContent();
-        $newPageContent = self::editRegions($rawPageContent, $this->data->regions, $editsCount);
-        if ($editsCount) {
-            $this->data->page = $this->getRequestFile();
-            $this->data->pageContentRaw = $rawPageContent;
-            $this->data->pageContentNew = $newPageContent;
-            file_put_contents($this->data->page, $newPageContent);
+        $newPageContent = self::editRegions($rawPageContent, $regions, $editsCount);
+
+        if ($editsCount) $this->saveFile($page, $newPageContent);
+        else $this->setStatus(false, 'No corresponding block found');
+        
+        if ($this->getConfig('PicoContentEditor.debug')) {
+            $this->response->debug = (object) array(
+                'pagePath' => $page,
+                'pageContentRaw' => $rawPageContent,
+                'pageContentNew' => $newPageContent,
+                'regions' => $regions,
+                'request' => $request,
+            );
         }
+    }
+
+    private function setStatus($status, $message)
+    {
+        $this->response->status = $status;
+        $this->response->message = $message;
+    }
+    private function saveFile($path, $content)
+    {
+        if (file_put_contents($path, $content)) {
+            $this->setStatus(true, 'File saved');
+        } else $this->setStatus(false, 'Error writing file');
     }
 
     private static function editRegions($content, $regions, &$totalCount)
@@ -109,10 +133,7 @@ EOF;
     public function onPageRendered(&$output)
     {
         if (!$this->save) return;
-
-        if ($this->getConfig('PicoContentEditor.debug') === true)
-            $output = json_encode($this->data);
-        else $output = '';
+        $output = json_encode($this->response);
     }
 }
 ?>

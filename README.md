@@ -26,11 +26,6 @@ Include the editor files in your pages by adding the following Twig tag at the e
 {{ content_editor }}
 ```
 
-> To restrict edition to authentified users, use the [PicoUsers] plugin. In that case you don't need to include the editor file for non-logged users and may use :
-> ```twig
-> {% if user %}{{ content_editor }}{% endif %}
-> ```
-
 On your pages content, add editable blocks with the attributes `data-editable`, `data-name` and `end-editable`.
 
 ```html
@@ -58,6 +53,27 @@ This one too :
 Every content inside those tags will be editable by visiting the page.
 
 The blocks `name` should be unique accross a single page.
+
+## Authentification
+
+To restrict edition to authentified users, install the [PicoUsers] plugin.
+
+If PicoUsers is detected, saving pages will be restricted to the user or group with the `PicoContentEditor/save` right. For example :
+
+```php
+$config['users'] = array(
+    'admin' => '$2y$10$Ym/XYzM9GsCzv3xFTiCea..8.F3xY/BpQISqW6/q3H41SmIK1reZe'
+);
+$config['rights'] = array(
+    'PicoContentEditor/save' => 'admin',
+);
+```
+
+And you may want to include the editor in your theme only for users with enough rights :
+
+```twig
+{% if user_has_right('PicoContentEditor/save') %}{{ content_editor }}{% endif %}
+```
 
 [ContentTools]: http://getcontenttools.com
 [PicoUsers]: https://github.com/nliautaud/pico-users

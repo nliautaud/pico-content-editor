@@ -25,19 +25,26 @@ editor.addEventListener('saved', function (ev) {
         // Check if the request is finished
         if (ev.target.readyState == 4) {
             editor.busy(false);
-            if (ev.target.status == '200') {
-                // Save was successful, notify the user with a flash
-                if (!passive) {
-                    new ContentTools.FlashUI('ok');
-                    try {
-                        console.log(JSON.parse(ev.target.response));
-                    } catch (error) {
-                        console.log(ev.target.response);
-                    }
-                }
-            } else {
+            if (ev.target.status != '200') {
                 // Save failed, notify the user with a flash
                 new ContentTools.FlashUI('no');
+                return;
+            }
+            try {
+                var response = JSON.parse(ev.target.response);
+                if (passive || !response) return;
+                if (response.status == false) {
+                    new ContentTools.FlashUI('no');
+                } else {
+                    // Save was successful, notify the user with a flash
+                    new ContentTools.FlashUI('ok');
+                }
+                console.log(response);
+            } catch (error) {
+                // response error
+                new ContentTools.FlashUI('no');
+                console.log(ev.target.response);
+                return;
             }
         }
     };
