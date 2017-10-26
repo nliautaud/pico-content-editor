@@ -1,6 +1,6 @@
 # Pico Content Editor
 
-A WYSIWYG content editor for [Pico CMS](http://http://picocms.org).
+A WYSIWYG content editor for [Pico CMS](http://picocms.org).
 
 - live editing with [ContentTools]
 - save edited content
@@ -33,7 +33,7 @@ Include the editor files in your pages by adding the following Twig tag at the e
 
 On your pages content, add editable blocks with the attributes `data-editable`, `data-name` and `end-editable`.
 
-```markdown
+```html
 ---
 Title: A page with editable content
 ---
