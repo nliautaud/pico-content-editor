@@ -1,4 +1,6 @@
 <?php
+require_once 'vendor/pixel418/markdownify/src/Converter.php'; 
+require_once 'vendor/pixel418/markdownify/src/ConverterExtra.php';
 /**
  * A content editor plugin for Pico, using ContentTools.
  *
@@ -11,38 +13,39 @@
  * @license http://opensource.org/licenses/MIT The MIT License
  * @version 0.2.3
  */
-ini_set('display_startup_errors',1);
-ini_set('display_errors',1);
-error_reporting(-1); 
 class PicoContentEditor extends AbstractPicoPlugin
 {
     private $response;
 
+    const ENDMARK = '<!--\s*end\s+editable\s*-->';
+
     /**
-     * Triggered after Pico has read all known pages
+     * Triggered after Pico has read its configuration
      *
-     * See {@link DummyPlugin::onSinglePageLoaded()} for details about the
-     * structure of the page data.
-     *
-     * @see    Pico::getPages()
-     * @see    Pico::getCurrentPage()
-     * @see    Pico::getPreviousPage()
-     * @see    Pico::getNextPage()
-     * @param  array[]    &$pages        data of all known pages
-     * @param  array|null &$currentPage  data of the page being served
-     * @param  array|null &$previousPage data of the previous page
-     * @param  array|null &$nextPage     data of the next page
+     * @see    Pico::getConfig()
+     * @param  array &$config array of config variables
      * @return void
      */
-    public function onPagesLoaded(
-        array &$pages,
-        array &$currentPage = null,
-        array &$previousPage = null,
-        array &$nextPage = null
-    ) {
+    public function onConfigLoaded(array &$config)
+    {
+        if($this->getConfig('PicoContentEditor.debug')) {
+            ini_set('display_startup_errors',1);
+            ini_set('display_errors',1);
+            error_reporting(-1); 
+        }
+    }
+    /**
+     * Remove the end mark of editable blocks in pages.
+     * 
+     * Triggered after Pico has read the contents of the file to serve
+     *
+     * @see    Pico::getRawContent()
+     * @param  string &$rawContent raw file contents
+     * @return void
+     */
+    public function onContentLoaded(&$rawContent)
+    {
         $this->save = isset($_POST['PicoContentEditor']);
-        if (!$this->save) return;
-
         $this->response = new stdClass();
 
         // check authentification with PicoUsers
@@ -51,10 +54,15 @@ class PicoContentEditor extends AbstractPicoPlugin
             $canSave = $PicoUsers->hasRight('PicoContentEditor/save');
             if (!$canSave) {
                 $this->setStatus(false, 'Authentification error');
-                return;
             }
         }
-
+        if ($this->save && $canSave) {
+            $this->saveEdits();
+        }
+        $this->removeMark($rawContent);
+    }
+    public function saveEdits()
+    {
         $regions = json_decode($_POST['PicoContentEditor']);
         $request = $this->getRequestUrl();
 
@@ -76,6 +84,11 @@ class PicoContentEditor extends AbstractPicoPlugin
             );
         }
     }
+    public function removeMark(&$content)
+    {
+        $mark = self::ENDMARK;
+        $content = preg_replace("`$mark`", '', $content);
+    }
 
     private function setStatus($status, $message)
     {
@@ -92,11 +105,21 @@ class PicoContentEditor extends AbstractPicoPlugin
     private static function editRegions($content, $regions, &$totalCount)
     {
         foreach($regions as $name => $value) {
-            $before = "(data-editable\s+data-name\s*=\s*['\"]\s*{$name}\s*['\"]\s*>[ \t]*\r?\n?)";
-            $after = "(\r?\n?[ \t]*</[^>]+>\s*<!--\s*end\s+editable\s*-->)";
-            $pattern = "`$before(.*?)$after`s";
-            $content = preg_replace($pattern, "$1$value$3", $content, -1, $count);
-            $totalCount += $count;
+            $before = "data-editable\s+data-name\s*=\s*['\"]\s*{$name}\s*['\"]";
+            $before.= "((?:\s*markdown\s*=\s*['\"]?(?:1|true)['\"]?)?)";
+            $before.= "\s*>\s*\r?\n?";
+            $mark = self::ENDMARK;
+            $after = "\r?\n?\s*</[^>]+>\s*$mark";
+            $pattern = "`($before).*?($after)`s";
+            $content = preg_replace_callback($pattern, function($matches) use ($value, &$totalCount) {
+                list(, $before, $useMarkdown, $after) = $matches;
+                if ($useMarkdown) {
+                    $converter = new Markdownify\ConverterExtra;
+                    $value = $converter->parseString($value);
+                }
+                $totalCount++;
+                return "$before$value$after";
+            }, $content);
         }
         return $content;
     }
