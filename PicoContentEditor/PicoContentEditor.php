@@ -92,8 +92,8 @@ class PicoContentEditor extends AbstractPicoPlugin
     private static function editRegions($content, $regions, &$totalCount)
     {
         foreach($regions as $name => $value) {
-            $before = "(data-editable\s+data-name\s*=\s*['\"]\s*{$name}\s*['\"]\s*>\r?\n?)";
-            $after = "(\r?\n?</[^>]+end-editable)";
+            $before = "(data-editable\s+data-name\s*=\s*['\"]\s*{$name}\s*['\"]\s*>[ \t]*\r?\n?)";
+            $after = "(\r?\n?[ \t]*</[^>]+>\s*<!--\s*end\s+editable\s*-->)";
             $pattern = "`$before(.*?)$after`s";
             $content = preg_replace($pattern, "$1$value$3", $content, -1, $count);
             $totalCount += $count;

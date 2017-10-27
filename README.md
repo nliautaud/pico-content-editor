@@ -26,7 +26,7 @@ Include the editor files in your pages by adding the following Twig tag at the e
 {{ content_editor }}
 ```
 
-On your pages content, add editable blocks with the attributes `data-editable`, `data-name` and `end-editable`.
+On your pages content, add editable blocks with the attributes `data-editable`, `data-name` and a closing comment `end-editable`.
 
 ```html
 ---
@@ -37,7 +37,7 @@ The following content is editable :
 
 <div data-editable data-name="pages-first-content">
     <p>Edit me!</p>
-</div end-editable>
+</div><!--end editable-->
 
 This one too : 
 
@@ -47,7 +47,7 @@ This one too :
         <li>Two</li>
         <li>Three</li>
     </ul>
-</div end-editable>
+</div><!--end editable-->
 ```
 
 Every content inside those tags will be editable by visiting the page.
