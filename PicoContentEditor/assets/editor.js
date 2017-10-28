@@ -33,7 +33,7 @@ editor.addEventListener('saved', function (ev) {
             try {
                 var response = JSON.parse(ev.target.response);
                 if (passive || !response) return;
-                if (response.status == false) {
+                if (response.status.find(x => x.state == false)) {
                     new ContentTools.FlashUI('no');
                 } else {
                     // Save was successful, notify the user with a flash
