@@ -20,13 +20,13 @@ $config['PicoContentEditor.debug'] = false; // if true, outputs the requests to 
 
 ## Usage
 
-Include the editor files in your pages by adding the following Twig tag at the end of your theme, before the closing `</body>`.
+Include the editor files by adding the following tag at the end of your theme, before the closing `</body>`.
 
 ```twig
 {{ content_editor }}
 ```
 
-On your pages content, add editable blocks with the attributes `data-editable`, `data-name` and a closing comment `end-editable`.
+Define editable regions in your pages by using HTML blocks with the attributes `data-editable`, `data-name` and a closing comment `end-editable`.
 
 ```html
 ---
@@ -39,20 +39,37 @@ The following content is editable :
     <p>Edit me!</p>
 </div><!--end editable-->
 
-This one too : 
+This one too, and will be converted back to markdown on saving :
 
-<div data-editable data-name="pages-secondary-content">
-    <ul>
-        <li>One</li>
-        <li>Two</li>
-        <li>Three</li>
-    </ul>
+<div data-editable data-name="pages-secondary-content" markdown=1>
+    - One
+    - Two
+    - Three
+
+    This content will be saved in *markdown*.
 </div><!--end editable-->
 ```
 
 Every content inside those tags will be editable by visiting the page.
 
-The blocks `name` should be unique accross a single page.
+> `data-name` should be unique accross a single output.
+
+You can create editable blocks in themes, you just have to specify the source file path with `data-src`.
+
+```html
+<footer id="footer">
+    <div class="inner">
+        <div class="social">
+            {% for social in meta.social %}
+                <a href="{{ social.url }}" title="{{ social.title }}"><span class="icon-{{ social.icon }}"></span></a>
+            {% endfor %}
+        </div>
+        <div data-editable data-name="footer" data-src="themes/mytheme/footer.twig">
+            <p>Edit me !</p>
+        </div><!--end editable-->
+    </div>
+</footer>
+```
 
 ## Authentification
 
