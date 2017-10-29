@@ -258,9 +258,6 @@ EOF;
 
         // load the source file and replace the block with new content
         $content = $this->loadFileContent($editedRegion->source);
-        if($region->type == 'fixture') {
-            $editedRegion->value = self::getInnerHTML($editedRegion->value);
-        }
         $content = str_replace(
             $region->before.$region->content.$region->after,
             $region->before.$editedRegion->value.$region->after,
@@ -277,11 +274,6 @@ EOF;
             return;
         }
         $editedRegion->message = 'Saved';
-    }
-    private static function getInnerHTML($str)
-    {
-        preg_match('`<[^>]+>(.*)</[^>]+>`s', $str, $matches);
-        return $matches[1];
     }
 }
 

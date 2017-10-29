@@ -16,6 +16,13 @@ editor.addEventListener('saved', function (ev) {
         return;
     }
 
+    // keep only inner content of fixtures
+    var theregions = editor.regions();
+    Object.keys(theregions).forEach(name => {
+        if (theregions[name].type() == 'Fixture')
+            regions[name] = theregions[name].domElement().innerHTML;
+    });
+
     // Set the editors state to busy while we save our changes
     this.busy(true);
 
