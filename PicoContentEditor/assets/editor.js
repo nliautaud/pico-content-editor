@@ -30,21 +30,43 @@ editor.addEventListener('saved', function (ev) {
                 new ContentTools.FlashUI('no');
                 return;
             }
+            var response;
             try {
-                var response = JSON.parse(ev.target.response);
-                if (passive || !response) return;
-                if (response.status.find(x => x.state == false)) {
-                    new ContentTools.FlashUI('no');
-                } else {
-                    // Save was successful, notify the user with a flash
-                    new ContentTools.FlashUI('ok');
-                }
-                console.log(response);
+                response = JSON.parse(ev.target.response);
             } catch (error) {
                 // response error
-                new ContentTools.FlashUI('no');
+                new Noty({
+                    type: 'error',
+                    text: 'There was an error reading the server response',
+                    timeout: status.state ? 3000 : 5000
+                }).show(); 
                 console.log(ev.target.response);
                 return;
+            }
+            if (passive || !response) return;
+            console.log(response);
+            // response notifications
+            response.status.forEach( status => {
+                new Noty({
+                    type: status.state ? 'success' : 'warning',
+                    text: status.message,
+                    timeout: status.state ? 3000 : 5000
+                }).show(); 
+            });
+            // debug notifications
+            if (response.regions) {
+                var i = 0;
+                for(var id in response.regions) {
+                    var region = response.regions[id],
+                        source = region.source ? `(<em>${region.source.split(/[\\/]/).pop()}</em>)` : '';
+                    setTimeout(function(){
+                        new Noty({
+                            type: region.saved ? 'success' : 'error',
+                            text: `<strong>Debug</strong><br><em>${id}</em> : ${region.message} ${source}`,
+                            timeout: region.saved ? 3000 : 5000
+                        }).show();
+                    }, 50 * ++i);
+                }
             }
         }
     };

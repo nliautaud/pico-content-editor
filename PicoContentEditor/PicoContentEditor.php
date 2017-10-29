@@ -114,7 +114,9 @@ class PicoContentEditor extends AbstractPicoPlugin
     {
         $pluginurl = $this->getBaseUrl() . basename($this->getPluginsDir()) . '/PicoContentEditor';
         $twigVariables['content_editor'] = <<<EOF
-        <link rel="stylesheet" type="text/css" href="$pluginurl/assets/contenttools/content-tools.min.css">
+        <link href="$pluginurl/assets/noty/noty.css" rel="stylesheet">
+        <script src="$pluginurl/assets/noty/noty.min.js" type="text/javascript"></script>
+        <link href="$pluginurl/assets/contenttools/content-tools.min.css" rel="stylesheet">
         <script src="$pluginurl/assets/contenttools/content-tools.min.js"></script>
         <script src="$pluginurl/assets/editor.js"></script>
 EOF;
@@ -250,7 +252,7 @@ EOF;
         } else $editedRegion->source = $this->getRequestFile();
 
         if (!file_exists($editedRegion->source)) {
-            $editedRegion->error = 'Source file not found';
+            $editedRegion->message = 'Source file not found';
             return;
         }
 
@@ -261,15 +263,17 @@ EOF;
             $region->before.$editedRegion->value.$region->after,
             $content, $count);
         if (!$count) {
-            $editedRegion->error = 'Error replacing region content';
+            $editedRegion->message = 'Error replacing region content';
             return;
         }
 
         // save the source file
         $editedRegion->saved = file_put_contents($editedRegion->source, $content);
         if (!$editedRegion->saved) {
-            $editedRegion->error = 'Error writing file';
+            $editedRegion->message = 'Error writing file';
+            return;
         }
+        $editedRegion->message = 'Saved';
     }
 }
 
