@@ -1,5 +1,8 @@
 var editor = ContentTools.EditorApp.get();
-editor.init('*[data-editable]', 'data-name');
+editor.init(
+    '*[data-editable], [data-fixture]',
+    'data-name'
+);
 
 editor.addEventListener('saved', function (ev) {
     var name, onStateChange, passive, payload, regions, xhr;
