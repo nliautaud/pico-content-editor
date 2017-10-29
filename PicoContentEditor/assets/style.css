@@ -1,0 +1,25 @@
+.ct-widget.ct-ignition {
+    top: 42px;
+}
+.ContentEditor {
+    padding: 16px 16px 16px 144px;
+    background: #234;
+    color: white;
+}
+.ContentEditor_Meta {
+    display: block;
+    box-sizing: border-box;
+    background: #345;
+    color: white;
+    width: 100%;
+    margin: 0;
+    padding: 1em;
+    font: 16px/1.2 "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Droid Sans Mono", "Source Code Pro", monospace;
+    border-color: #456;
+}
+.ContentEditor::before,
+.ContentEditor::after {
+    content: "---";
+    font-family: monospace;
+    color: #789;
+}

@@ -15,9 +15,8 @@ require_once 'vendor/pixel418/markdownify/src/ConverterExtra.php';
  */
 class PicoContentEditor extends AbstractPicoPlugin
 {
-    private $save = false;
-    private $canSave = false;
-    private $editedRegions = array();
+    private $canSave = true;
+    private $edits = null;
 
     /**
      * Array of status logs that are returned in the JSON response
@@ -58,18 +57,16 @@ class PicoContentEditor extends AbstractPicoPlugin
             error_reporting(-1); 
         }
 
-        $this->save = isset($_POST['PicoContentEditor']);
-        if ($this->save) {
-            $this->setEditedRegions();
-        }
+        $this->getEditedData();
 
         // check authentification with PicoUsers
         if (class_exists('PicoUsers')) {
             $PicoUsers = $this->getPlugin('PicoUsers');
             $this->canSave = $PicoUsers->hasRight('PicoContentEditor/save');
-            if (!$this->canSave) {
-                $this->addStatus(false, 'Authentification error');
-            }
+        }
+
+        if ($this->edits && !$this->canSave) {
+            $this->addStatus(false, 'Authentification error');
         }
     }
     /**
@@ -91,8 +88,9 @@ class PicoContentEditor extends AbstractPicoPlugin
     public function onContentLoaded(&$rawContent)
     {
         // save edited regions
-        if ($this->save && $this->canSave) {
-            $this->saveRegions($rawContent);
+        if ($this->edits && $this->canSave) {
+            if ($this->edits->regions) $this->saveRegions($rawContent);
+            if ($this->edits->meta) $this->saveMeta($rawContent);
         }
         // remove the end-editable mark
         $mark = self::ENDMARK;
@@ -112,13 +110,20 @@ class PicoContentEditor extends AbstractPicoPlugin
      */
     public function onPageRendering(Twig_Environment &$twig, array &$twigVariables, &$templateName)
     {
+        if (!$this->canSave) return;
         $pluginurl = $this->getBaseUrl() . basename($this->getPluginsDir()) . '/PicoContentEditor';
         $twigVariables['content_editor'] = <<<EOF
         <link href="$pluginurl/assets/noty/noty.css" rel="stylesheet">
         <script src="$pluginurl/assets/noty/noty.min.js" type="text/javascript"></script>
         <link href="$pluginurl/assets/contenttools/content-tools.min.css" rel="stylesheet">
         <script src="$pluginurl/assets/contenttools/content-tools.min.js"></script>
+        <link href="$pluginurl/assets/style.css" rel="stylesheet">
         <script src="$pluginurl/assets/editor.js"></script>
+EOF;
+        $twigVariables['content_editor_meta'] = <<<EOF
+        <div class="ContentEditor">
+            <pre class="ContentEditor_Meta" data-fixture data-meta>{$this->getRawMeta()}</pre>
+        </div>
 EOF;
     }
     /**
@@ -131,29 +136,28 @@ EOF;
      */
     public function onPageRendered(&$output)
     {
-        if (!$this->save) return;
+        if (!$this->edits) return;
         
-        // save regions from final output, so including blocks in templates.
-        // page blocks have been saved in @see self::onContentLoaded
-        if ($this->canSave) {
+        if ($this->edits->regions && $this->canSave) {
+            // save regions from final output, so including blocks in templates.
+            // page blocks have been saved in @see self::onContentLoaded
             $this->saveRegions($output);
-        }
-        
-        // set final status
-        $unsaved = array_filter( $this->editedRegions, function ($e) {
-            return $e->saved == false;
-        });
-        if (count($unsaved)) {
-            $this->addStatus(false, 'Not all regions have been saved');
-        } else {
-            $this->addStatus(true, 'All changes have been saved');
+            // set final status
+            $unsaved = array_filter( $this->edits->regions, function ($e) {
+                return $e->saved == false;
+            });
+            if (count($unsaved)) {
+                $this->addStatus(false, 'Not all regions have been saved');
+            } else if (count($this->edits->regions)) {
+                $this->addStatus(true, 'All regions have been saved');
+            }
         }
 
         // output response
         $response = new stdClass();
         $response->status = $this->status;
         if ($this->getConfig('PicoContentEditor.debug')) {
-            $response->regions = $this->editedRegions;
+            $response->edited = $this->edits;
         }
         $output = json_encode($response);
     }
@@ -162,6 +166,18 @@ EOF;
 
 
 
+    /**
+     * Return the current page raw metadata.
+     *
+     * @return string
+     */
+    private function getRawMeta()
+    {
+        $pattern = "/^(\/(\*)|---)[[:blank:]]*(?:\r)?\n"
+            . "(?:(.*?)(?:\r)?\n)?(?(2)\*\/|---)[[:blank:]]*(?:(?:\r)?\n|$)/s";
+        if (preg_match($pattern, $this->getRawContent(), $rawMetaMatches) && isset($rawMetaMatches[3]))
+            return $rawMetaMatches[3];
+    }
     /**
      * Adds a status entry.
      * 
@@ -178,17 +194,25 @@ EOF;
         );
     }
     /**
-     * Set @see{PicoContentEditor::$editedRegions} according to data sent by the editor.
+     * Set @see{PicoContentEditor::$edited} according to data sent by the editor.
      *
      * @return void
      */
-    private function setEditedRegions()
+    private function getEditedData()
     {
-        $regions = json_decode($_POST['PicoContentEditor']);
-        foreach($regions as $name => $value) {
-            $this->editedRegions[$name] = (object) array(
+        if (!isset($_POST['PicoContentEditor'])) return;
+
+        $query = json_decode($_POST['PicoContentEditor']);
+
+        $this->edits = new stdClass();
+        $this->edits->meta = isset($query->meta) ? $query->meta : null;
+        $this->edits->regions = isset($query->regions) ? array() : null;
+
+        foreach($query->regions as $name => $value) {
+            $this->edits->regions[$name] = (object) array(
                 'value' => $value,
-                'saved' => false
+                'saved' => false,
+                'message' => 'Not saved'
             );
         }
     }
@@ -204,8 +228,8 @@ EOF;
     {
         $regions = self::getEditableRegions($content);
         foreach ($regions as $region) {
-            if (!isset($this->editedRegions[$region->name])) continue;
-            $this->saveRegion($region, $this->editedRegions[$region->name]);
+            if (!isset($this->edits->regions[$region->name])) continue;
+            $this->saveRegion($region, $this->edits->regions[$region->name]);
         }
     }
     /**
@@ -218,7 +242,7 @@ EOF;
     {
         $before = "<[^>]+data-(?P<type>editable|fixture)\s+data-name\s*=\s*['\"]\s*(?P<name>[^'\"]*?)\s*['\"][^>]*>\s*\r?\n?";
         $mark = self::ENDMARK;
-        $inner = '(?:(?!data-editable).)*?';
+        $inner = '(?:(?!data-editable|data-fixture).)*?';
         $after = "\r?\n?\s*</[^>]+>\s*$mark";
         $pattern = "`(?P<before>$before)(?P<content>$inner)(?P<after>$after)`s";
         preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
@@ -232,7 +256,7 @@ EOF;
      * Save a given region.
      *
      * @param \stdClass $region The editable block, @see{PicoContentEditor::getEditableRegions()}
-     * @param \stdClass $editedRegion The edited region, @see{PicoContentEditor::$editedRegions}
+     * @param \stdClass $editedRegion The edited region, @see{PicoContentEditor::$edited}
      * @return void
      */
     private function saveRegion($region, &$editedRegion)
@@ -274,6 +298,28 @@ EOF;
             return;
         }
         $editedRegion->message = 'Saved';
+    }
+    /**
+     * Save a new page meta.
+     *
+     * @param \stdClass $content The raw page content.
+     * @return void
+     */
+    private function saveMeta($content)
+    {
+        $content = str_replace($this->getRawMeta(), $this->edits->meta, $content, $count);
+
+        if (!$count) {
+            $this->addStatus(false, 'Error replacing page meta');
+            return;
+        }
+
+        // save the source file
+        if (!file_put_contents($this->getRequestFile(), $content)) {
+            $this->addStatus(false, 'Error writing file');
+            return;
+        }
+        $this->addStatus(true, 'Page meta saved');
     }
 }
 

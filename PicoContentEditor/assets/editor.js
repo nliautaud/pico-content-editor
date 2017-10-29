@@ -3,24 +3,37 @@ editor.init(
     '*[data-editable], [data-fixture]',
     'data-name'
 );
-
 editor.addEventListener('saved', function (ev) {
-    var name, onStateChange, passive, payload, regions, xhr;
+    var name, onStateChange, passive, payload, xhr;
+
+    var edits = ev.detail().regions;
+        regions = editor.regions(),
+        query = { regions: {} },
+        editsNames = Object.keys(edits);
 
     // Check if this was a passive save
     passive = ev.detail().passive;
-
+    
     // Check to see if there are any changes to save
-    regions = ev.detail().regions;
-    if (Object.keys(regions).length == 0) {
-        return;
-    }
+    if (editsNames.length == 0) return;
 
-    // keep only inner content of fixtures
-    var theregions = editor.regions();
-    Object.keys(theregions).forEach(name => {
-        if (theregions[name].type() == 'Fixture')
-            regions[name] = theregions[name].domElement().innerHTML;
+    // for fixtures, uses dom innerHTML to get rid of outer el.
+    // see https://github.com/GetmeUK/ContentTools/issues/448
+    editsNames.forEach(name => {
+        var el = regions[name].domElement();
+        // this region is the page meta
+        if (el.dataset.meta !== undefined) {
+            query.meta = el.innerHTML
+            // as we don't use proper region value (see above),
+            // we need to get rid of utility character
+            // see https://github.com/GetmeUK/ContentTools/issues/263
+            query.meta = query.meta.replace(/\u200B/g, '');
+            delete query.regions[name];
+            return;
+        }
+        if (regions[name].type() == 'Fixture')
+            query.regions[name] = el.innerHTML;
+        else query.regions[name] = regions[name].html();
     });
 
     // Set the editors state to busy while we save our changes
@@ -28,7 +41,7 @@ editor.addEventListener('saved', function (ev) {
 
     // Collect the contents of each region into a FormData instance
     payload = new FormData();
-    payload.append('PicoContentEditor', JSON.stringify(regions));
+    payload.append('PicoContentEditor', JSON.stringify(query));
 
     // Send the update content to the server to be saved
     onStateChange = function(ev) {
@@ -64,10 +77,10 @@ editor.addEventListener('saved', function (ev) {
                 }).show(); 
             });
             // debug notifications
-            if (response.regions) {
+            if (response.edited.regions) {
                 var i = 0;
-                for(var id in response.regions) {
-                    var region = response.regions[id],
+                for(var id in response.edited.regions) {
+                    var region = response.edited.regions[id],
                         source = region.source ? `(<em>${region.source.split(/[\\/]/).pop()}</em>)` : '';
                     setTimeout(function(){
                         new Noty({

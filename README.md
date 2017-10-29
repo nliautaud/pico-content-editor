@@ -3,7 +3,8 @@
 A WYSIWYG content editor for [Pico CMS](http://picocms.org).
 
 - live editing with [ContentTools]
-- save edited content
+- save edited content from pages or themes
+- editable pages metadata
 - supports authentification with [PicoUsers]
 
 ## Installation
@@ -54,7 +55,21 @@ Every content inside those tags will be editable by visiting the page.
 
 > `data-name` should be unique accross a single output.
 
-You can create editable blocks in themes, you just have to specify the source file path with `data-src`.
+## Metadata editor
+
+To add an editor for the pages metadata, use the following tag after the opening of `<body>` :
+
+```twig
+{{ content_editor_meta }}
+```
+
+An editable text area will contain the page frontmatter.
+
+## Editable regions in themes and templates
+
+You can create editable blocks in themes, just point to the source file with the attribute `data-src`.
+
+For exemple, the following code could be the content of a `footer.twig` file in your theme.
 
 ```html
 <footer id="footer">
@@ -73,9 +88,9 @@ You can create editable blocks in themes, you just have to specify the source fi
 
 ## Authentification
 
-To restrict edition to authentified users, install the [PicoUsers] plugin.
+To restrict edition to authentified users, install the [PicoUsers] plugin and give the `PicoContentEditor/save` right to a user or group.
 
-If PicoUsers is detected, saving pages will be restricted to the user or group with the `PicoContentEditor/save` right. For example :
+If PicoUsers is detected, saving pages will be automatically restricted to authorized users. For example :
 
 ```php
 $config['users'] = array(
@@ -84,12 +99,6 @@ $config['users'] = array(
 $config['rights'] = array(
     'PicoContentEditor/save' => 'admin',
 );
-```
-
-And you may want to include the editor in your theme only for users with enough rights :
-
-```twig
-{% if user_has_right('PicoContentEditor/save') %}{{ content_editor }}{% endif %}
 ```
 
 [ContentTools]: http://getcontenttools.com
