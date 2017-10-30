@@ -127,7 +127,7 @@
     ContentTools.IMAGE_UPLOADER = ImageUploader;
 
     let applyToImages = function (element) {
-      return element.content !== undefined || element.type() === 'Image';
+      return element.content !== undefined || element.type() === 'Image' || element.type() === 'Video';
     }
     ContentTools.Tools.AlignLeft.canApply = applyToImages;
     ContentTools.Tools.AlignRight.canApply = applyToImages;
