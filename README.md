@@ -3,9 +3,10 @@
 A WYSIWYG content editor for [Pico CMS](http://picocms.org).
 
 - live editing with [ContentTools]
-- save edited content from pages or themes
-- editable pages metadata
-- supports authentification with [PicoUsers]
+- save to pages or themes files
+- pages metadata editor
+- images upload
+- authentification with [PicoUsers]
 
 ## Installation
 
@@ -30,7 +31,7 @@ Include the editor files by adding the following tag at the end of your theme, b
 {{ content_editor }}
 ```
 
-Define editable regions in your pages by using HTML blocks with the attributes `data-editable`, `data-name` and a closing comment `end-editable`.
+Define editable regions in your pages by using HTML blocks with the attributes `data-editable`, `data-name` and a closing comment `end-editable`. `data-name` should be unique accross a single output.
 
 ```html
 ---
@@ -55,8 +56,6 @@ This one too, and will be converted back to markdown on saving :
 ```
 
 Every content inside those tags will be editable by visiting the page.
-
-> `data-name` should be unique accross a single output.
 
 ## Metadata editor
 
@@ -89,18 +88,63 @@ For exemple, the following code could be the content of a `footer.twig` file in 
 </footer>
 ```
 
+## Fixed editable elements
+
+To make fixed elements with an editable inner content, use `data-fixture` instead of `data-editable` :
+
+```html
+<h1 data-fixture data-name="editable-header" data-src="themes/mytheme/header.twig">
+Edit me !
+</h1><!--end editable-->
+```
+
+Only inline tools will be allowed in this context : **Bold**, *Italic*, ...
+
+Unrecognized tags can be defined with `data-ce-tag`, for example for a fixed editable link and a fixed editable image :
+
+```html
+<a data-fixture data-name="my-editable-link" data-ce-tag="p" href="/test">
+Editable link
+</a><!--end editable-->
+
+<div data-fixture data-name="my-hero-image" data-ce-tag="img-fixture"
+     style="background-image: url('image.png');">
+    <img src="image.png" alt="Some image">
+</div><!--end editable-->
+```
+
+## Files upload
+
+Files are uploaded to `images/` by default.
+
+You can define a custom location in the Pico config file with :
+
+```php
+$config['PicoContentEditor.uploadpath'] = 'assets';
+```
+
 ## Authentification
 
-To restrict edition to authentified users, install the [PicoUsers] plugin and give the `PicoContentEditor/save` right to a user or group.
+If the [PicoUsers] plugin is installed and detected, actions are automatically restricted to authorized users.
 
-If PicoUsers is detected, saving pages will be automatically restricted to authorized users. For example :
+|Right|Desc|
+|:-|:-|
+|`PicoContentEditor`| All rights below.
+|`PicoContentEditor/save`| Editing regions in pages and themes source files.
+|`PicoContentEditor/upload`| Uploading files on the server.
+
+Configuration example of [PicoUsers] :
 
 ```php
 $config['users'] = array(
-    'admin' => '$2y$10$Ym/XYzM9GsCzv3xFTiCea..8.F3xY/BpQISqW6/q3H41SmIK1reZe'
+    'admin' => '$2y$10$Ym/XYzM9GsCzv3xFTiCea..8.F3xY/BpQISqW6/q3H41SmIK1reZe',
+    'editors' => array(
+        'bill' => '$2y$10$INwdOkshW6dhyVJbZYVm1..PxKc1CQTRG5jF.UaynOPDC6aukfkaa'
+    )
 );
 $config['rights'] = array(
-    'PicoContentEditor/save' => 'admin',
+    'PicoContentEditor' => 'admin',
+    'PicoContentEditor/save' => 'editors',
 );
 ```
 
