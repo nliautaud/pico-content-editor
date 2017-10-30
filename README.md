@@ -17,7 +17,10 @@ The settings are stored in Pico config file.
 
 ```php
 $config['PicoContentEditor.debug'] = false; // if true, outputs the requests to the console
+$config['PicoContentEditor.lang'] = 'fr'; // language code of a supported language
 ```
+
+The languages supported are listed in the *[translations/](https://github.com/nliautaud/pico-content-editor/tree/master/PicoContentEditor/assets/ContentTools/translations)* directory.
 
 ## Usage
 
