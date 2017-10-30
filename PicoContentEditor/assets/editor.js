@@ -235,9 +235,6 @@
       IMAGE_FIXTURE_TOOLS = [
         ['undo', 'redo', 'image']
       ],
-      LINK_FIXTURE_TOOLS = [
-        ['undo', 'redo', 'link']
-      ],
       PRE_FIXTURE_TOOLS = [
         ['undo', 'redo']
       ];
@@ -248,8 +245,6 @@
           tools = PRE_FIXTURE_TOOLS;
         } else if (element.type() === 'ImageFixture') {
           tools = IMAGE_FIXTURE_TOOLS;
-        } else if (element.tagName() === 'a') {
-          tools = LINK_FIXTURE_TOOLS;
         } else {
           tools = FIXTURE_TOOLS;
         }
