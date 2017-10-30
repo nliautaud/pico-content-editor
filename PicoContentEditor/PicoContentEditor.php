@@ -112,12 +112,15 @@ class PicoContentEditor extends AbstractPicoPlugin
     {
         if (!$this->canSave) return;
         $pluginurl = $this->getBaseUrl() . basename($this->getPluginsDir()) . '/PicoContentEditor';
+        $lang = $this->getConfig('PicoContentEditor.lang');
+        $langdata = self::getLanguageContent($lang);
         $twigVariables['content_editor'] = <<<EOF
         <link href="$pluginurl/assets/noty/noty.css" rel="stylesheet">
         <script src="$pluginurl/assets/noty/noty.min.js" type="text/javascript"></script>
         <link href="$pluginurl/assets/ContentTools/content-tools.min.css" rel="stylesheet">
         <script src="$pluginurl/assets/ContentTools/content-tools.min.js"></script>
         <link href="$pluginurl/assets/style.css" rel="stylesheet">
+        <script id="ContentToolsLanguage" type="application/json" data-lang="$lang">$langdata</script>
         <script src="$pluginurl/assets/editor.js"></script>
 EOF;
         $twigVariables['content_editor_meta'] = <<<EOF
@@ -166,6 +169,18 @@ EOF;
 
 
 
+    /**
+     * Return a ContentTools translation.
+     *
+     * @param string $lang The language code.
+     * @return string The JSON data.
+     */
+    private static function getLanguageContent($lang)
+    {
+        $path = __DIR__."/assets/ContentTools/translations/$lang.json";
+        if ($lang && file_exists($path)) return file_get_contents($path);
+        return '';
+    }
     /**
      * Return the current page raw metadata.
      *

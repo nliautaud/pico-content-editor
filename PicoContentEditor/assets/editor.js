@@ -1,8 +1,5 @@
 var editor = ContentTools.EditorApp.get();
-editor.init(
-    '*[data-editable], [data-fixture]',
-    'data-name'
-);
+editor.init('[data-editable], [data-fixture]', 'data-name');
 editor.addEventListener('saved', function (ev) {
     var name, onStateChange, passive, payload, xhr;
 
@@ -99,3 +96,14 @@ editor.addEventListener('saved', function (ev) {
     xhr.open('POST', '?contentsave');
     xhr.send(payload);
 });
+
+
+//
+// Translation
+//
+var el_lang = document.getElementById('ContentToolsLanguage');
+if (el_lang && el_lang.dataset.lang) {
+    let translation = JSON.parse(el_lang.textContent);
+    ContentEdit.addTranslations(el_lang.dataset.lang, translation);
+    ContentEdit.LANGUAGE = el_lang.dataset.lang;
+}
