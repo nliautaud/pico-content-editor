@@ -15,8 +15,10 @@ require_once 'vendor/pixel418/markdownify/src/ConverterExtra.php';
  */
 class PicoContentEditor extends AbstractPicoPlugin
 {
-    private $canSave = true;
     private $edits = null;
+    private $upload = null;
+    private $canSave = true;
+    private $canUpload = true;
 
     /**
      * Array of status logs that are returned in the JSON response
@@ -57,15 +59,20 @@ class PicoContentEditor extends AbstractPicoPlugin
             error_reporting(-1); 
         }
 
-        $this->getEditedData();
+        $this->checkEdits();
+        $this->checkUpload();
 
         // check authentification with PicoUsers
         if (class_exists('PicoUsers')) {
             $PicoUsers = $this->getPlugin('PicoUsers');
             $this->canSave = $PicoUsers->hasRight('PicoContentEditor/save');
+            $this->canUpload = $PicoUsers->hasRight('PicoContentEditor/upload');
         }
 
         if ($this->edits && !$this->canSave) {
+            $this->addStatus(false, 'Authentification error');
+        }
+        if ($this->upload && !$this->canUpload) {
             $this->addStatus(false, 'Authentification error');
         }
     }
@@ -139,9 +146,9 @@ EOF;
      */
     public function onPageRendered(&$output)
     {
-        if (!$this->edits) return;
+        if (!$this->edits && !$this->upload) return;
         
-        if ($this->edits->regions && $this->canSave) {
+        if ($this->edits && $this->edits->regions && $this->canSave) {
             // save regions from final output, so including blocks in templates.
             // page blocks have been saved in @see self::onContentLoaded
             $this->saveRegions($output);
@@ -161,6 +168,7 @@ EOF;
         $response->status = $this->status;
         if ($this->getConfig('PicoContentEditor.debug')) {
             $response->edited = $this->edits;
+            $response->file = $this->upload;
         }
         $output = json_encode($response);
     }
@@ -213,7 +221,7 @@ EOF;
      *
      * @return void
      */
-    private function getEditedData()
+    private function checkEdits()
     {
         if (!isset($_POST['PicoContentEditor'])) return;
 
@@ -335,6 +343,39 @@ EOF;
             return;
         }
         $this->addStatus(true, 'Page meta saved');
+    }
+
+
+    
+    /**
+     * Set @see{PicoContentEditor::$edited} according to data sent by the editor.
+     *
+     * @return void
+     */
+    private function checkUpload()
+    {
+        if (!isset($_FILES['PicoContentEditorUpload'])) return;
+
+        $root = $this->getRootDir();
+        $path = $this->getConfig('PicoContentEditor.uploadpath');
+        if (!$path) $path = 'images';
+
+        $realpath = realpath($root.$path);
+        if ($realpath === false || strpos($realpath, $root) !== 0) {
+            $this->addStatus(false, 'The upload directory is missing or invalid');
+            return;
+        }
+
+        $file = $_FILES['PicoContentEditorUpload'];
+        $filename =  '/' . basename($file['name']);
+        if (move_uploaded_file($file['tmp_name'], $realpath.$filename)) {
+            $this->addStatus(true, 'The file have been uploaded');
+            $this->upload['name'] = $filename;
+            $this->upload['path'] = $path.$filename;
+            $this->upload['size'] = getimagesize($realpath.$filename);
+            return;
+        }
+        $this->addStatus(false, 'The file coundn\'t be uploaded');
     }
 }
 
