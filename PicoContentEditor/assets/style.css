@@ -23,3 +23,30 @@
     font-family: monospace;
     color: #789;
 }
+
+[data-editable] .text-left {
+    text-align: left;
+}
+[data-editable] .text-right {
+    text-align: right;
+}
+[data-editable] .text-center {
+    text-align: center;
+}
+[data-editable] img.text-left,
+.ce-element--type-image.text-left {
+    float: left;
+}
+[data-editable] img.text-right,
+.ce-element--type-image.text-right {
+    float: right;
+}
+[data-editable] img.text-center,
+.ce-element--type-image.text-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.ce-element--type-image {
+    display: inline-block;
+}

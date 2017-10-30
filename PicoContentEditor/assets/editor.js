@@ -112,11 +112,11 @@
       }
       // Trigger the save event against the dialog with details of the
       // image to be inserted.
-        console.log(image);
+      console.log(image);
       dialog.save(image.url, image.size, {
-          'alt': image.name,
-          'data-ce-max-width': image.width
-        });
+        'alt': image.name,
+        'data-ce-max-width': image.width
+      });
     });
   }
 
@@ -125,6 +125,13 @@
 
     var editor;
     ContentTools.IMAGE_UPLOADER = ImageUploader;
+
+    let applyToImages = function (element) {
+      return element.content !== undefined || element.type() === 'Image';
+    }
+    ContentTools.Tools.AlignLeft.canApply = applyToImages;
+    ContentTools.Tools.AlignRight.canApply = applyToImages;
+    ContentTools.Tools.AlignCenter.canApply = applyToImages;
 
     editor = ContentTools.EditorApp.get();
     editor.init('[data-editable], [data-fixture]', 'data-name');
