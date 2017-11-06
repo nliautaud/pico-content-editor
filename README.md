@@ -16,9 +16,9 @@ Copy the `PicoContentEditor` directory to the `plugins/` directory of your Pico 
 
 The settings are stored in Pico config file.
 
-```php
-$config['PicoContentEditor.debug'] = false; // if true, outputs the requests to the console
-$config['PicoContentEditor.lang'] = 'fr'; // language code of a supported language
+```yml
+PicoContentEditor.debug: false    # if true, outputs the requests to the console
+PicoContentEditor.lang: fr        # language code of a supported language
 ```
 
 The languages supported are listed in the *[translations/](https://github.com/nliautaud/pico-content-editor/tree/master/PicoContentEditor/assets/ContentTools/translations)* directory.
@@ -119,8 +119,8 @@ Files are uploaded to `images/` by default.
 
 You can define a custom location in the Pico config file with :
 
-```php
-$config['PicoContentEditor.uploadpath'] = 'assets';
+```yml
+PicoContentEditor.uploadpath: assets
 ```
 
 ## Authentification
@@ -135,17 +135,14 @@ If the [PicoUsers] plugin is installed and detected, actions are automatically r
 
 Configuration example of [PicoUsers] :
 
-```php
-$config['users'] = array(
-    'admin' => '$2y$10$Ym/XYzM9GsCzv3xFTiCea..8.F3xY/BpQISqW6/q3H41SmIK1reZe',
-    'editors' => array(
-        'bill' => '$2y$10$INwdOkshW6dhyVJbZYVm1..PxKc1CQTRG5jF.UaynOPDC6aukfkaa'
-    )
-);
-$config['rights'] = array(
-    'PicoContentEditor' => 'admin',
-    'PicoContentEditor/save' => 'editors',
-);
+```yml
+users:
+    admin: $2y$10$Ym/XYzM9GsCzv3xFTiCea..8.F3xY/BpQISqW6/q3H41SmIK1reZe
+    editors:
+        bill: $2y$10$INwdOkshW6dhyVJbZYVm1..PxKc1CQTRG5jF.UaynOPDC6aukfkaa
+rights:
+    PicoContentEditor: admin
+    PicoContentEditor/save: editors
 ```
 
 [ContentTools]: http://getcontenttools.com
