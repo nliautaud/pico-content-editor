@@ -371,7 +371,7 @@ EOF;
         if (move_uploaded_file($file['tmp_name'], $realpath.$filename)) {
             $this->addStatus(true, 'The file have been uploaded');
             $this->upload['name'] = $filename;
-            $this->upload['path'] = $path.$filename;
+            $this->upload['path'] = $this->getBaseUrl().$path.$filename;
             $this->upload['size'] = getimagesize($realpath.$filename);
             return;
         }
