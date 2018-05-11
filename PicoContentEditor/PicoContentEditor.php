@@ -166,10 +166,9 @@ EOF;
         // output response
         $response = new stdClass();
         $response->status = $this->status;
-        if ($this->getConfig('PicoContentEditor.debug')) {
-            $response->edited = $this->edits;
-            $response->file = $this->upload;
-        }
+        $response->edited = $this->edits;
+        $response->file = $this->upload;
+        $response->debug = $this->getConfig('PicoContentEditor.debug');
         $output = json_encode($response);
     }
 
