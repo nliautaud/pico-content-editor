@@ -166,10 +166,9 @@ EOF;
         // output response
         $response = new stdClass();
         $response->status = $this->status;
-        if ($this->getConfig('PicoContentEditor.debug')) {
-            $response->edited = $this->edits;
-            $response->file = $this->upload;
-        }
+        $response->edited = $this->edits;
+        $response->file = $this->upload;
+        $response->debug = $this->getConfig('PicoContentEditor.debug');
         $output = json_encode($response);
     }
 
@@ -371,7 +370,7 @@ EOF;
         if (move_uploaded_file($file['tmp_name'], $realpath.$filename)) {
             $this->addStatus(true, 'The file have been uploaded');
             $this->upload['name'] = $filename;
-            $this->upload['path'] = $path.$filename;
+            $this->upload['path'] = $this->getBaseUrl().$path.$filename;
             $this->upload['size'] = getimagesize($realpath.$filename);
             return;
         }
