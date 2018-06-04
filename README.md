@@ -115,7 +115,7 @@ Editable link
 
 ## Files upload
 
-Files are uploaded to `images/` by default.
+By default, files are uploaded to an `images/` directory located at the root of the Pico installation, next to `content/`.
 
 You can define a custom location in the Pico config file with :
 
