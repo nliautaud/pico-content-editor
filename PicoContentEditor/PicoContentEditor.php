@@ -118,17 +118,23 @@ class PicoContentEditor extends AbstractPicoPlugin
     public function onPageRendering(Twig_Environment &$twig, array &$twigVariables, &$templateName)
     {
         if (!$this->canSave) return;
-        $pluginurl = $this->getBaseUrl() . basename($this->getPluginsDir()) . '/PicoContentEditor';
+        $pluginUrl = $this->getBaseUrl() . basename($this->getPluginsDir()) . '/PicoContentEditor';
+
+        $ContentToolsUrl = rtrim($this->getConfig('PicoContentEditor.ContentToolsUrl'), '/');
         $lang = $this->getConfig('PicoContentEditor.lang');
-        $langdata = self::getLanguageContent($lang);
+        $langData = self::getLanguageContent($lang, $ContentToolsUrl);
+        if(!$ContentToolsUrl) {
+            $ContentToolsUrl = "$pluginUrl/assets/ContentTools/";
+        }
+       
         $twigVariables['content_editor'] = <<<EOF
-        <link href="$pluginurl/assets/noty/noty.css" rel="stylesheet">
-        <script src="$pluginurl/assets/noty/noty.min.js" type="text/javascript"></script>
-        <link href="$pluginurl/assets/ContentTools/content-tools.min.css" rel="stylesheet">
-        <script src="$pluginurl/assets/ContentTools/content-tools.min.js"></script>
-        <link href="$pluginurl/assets/style.css" rel="stylesheet">
-        <script id="ContentToolsLanguage" type="application/json" data-lang="$lang">$langdata</script>
-        <script src="$pluginurl/assets/editor.js"></script>
+        <link href="$pluginUrl/assets/noty/noty.css" rel="stylesheet">
+        <script src="$pluginUrl/assets/noty/noty.min.js" type="text/javascript"></script>
+        <link href="$ContentToolsUrl/build/content-tools.min.css" rel="stylesheet">
+        <script src="$ContentToolsUrl/build/content-tools.min.js"></script>
+        <link href="$pluginUrl/assets/style.css" rel="stylesheet">
+        <script id="ContentToolsLanguage" type="application/json" data-lang="$lang">$langData</script>
+        <script src="$pluginUrl/assets/editor.js"></script>
 EOF;
         $twigVariables['content_editor_meta'] = <<<EOF
         <div class="ContentEditor">
@@ -182,11 +188,12 @@ EOF;
      * @param string $lang The language code.
      * @return string The JSON data.
      */
-    private static function getLanguageContent($lang)
+    private static function getLanguageContent($lang, $ContentToolsUrl)
     {
-        $path = __DIR__."/assets/ContentTools/translations/$lang.json";
-        if ($lang && file_exists($path)) return file_get_contents($path);
-        return '';
+        if(!$lang) return;
+        if(!$ContentToolsUrl) $ContentToolsUrl = __DIR__.'/assets/ContentTools';
+        $path = "$ContentToolsUrl/translations/$lang.json";
+        return file_get_contents($path);
     }
     /**
      * Return the current page raw metadata.

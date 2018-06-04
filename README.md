@@ -14,11 +14,12 @@ Copy the `PicoContentEditor` directory to the `plugins/` directory of your Pico 
 
 ## Settings
 
-The settings are stored in Pico config file.
+Some optional settings can be defined in Pico config file.
 
 ```php
-$config['PicoContentEditor.debug'] = false; // if true, outputs the requests to the console
+$config['PicoContentEditor.debug'] = false; // enable errors reporting
 $config['PicoContentEditor.lang'] = 'fr'; // language code of a supported language
+$config['PicoContentEditor.ContentToolsUrl'] = 'https://cdn.jsdelivr.net/npm/ContentTools'; // custom ContentTools library location. Uses local files by default.
 ```
 
 The languages supported are listed in the *[translations/](https://github.com/nliautaud/pico-content-editor/tree/master/PicoContentEditor/assets/ContentTools/translations)* directory.
