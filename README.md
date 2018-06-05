@@ -14,11 +14,12 @@ Copy the `PicoContentEditor` directory to the `plugins/` directory of your Pico 
 
 ## Settings
 
-The settings are stored in Pico config file.
+Some optional settings can be defined in Pico config file.
 
 ```yml
-PicoContentEditor.debug: false    # if true, outputs the requests to the console
+PicoContentEditor.debug: false    # enable errors reporting
 PicoContentEditor.lang: fr        # language code of a supported language
+PicoContentEditor.ContentToolsUrl: https://cdn.jsdelivr.net/npm/ContentTools # custom ContentTools library location. Uses local files by default.
 ```
 
 The languages supported are listed in the *[translations/](https://github.com/nliautaud/pico-content-editor/tree/master/PicoContentEditor/assets/ContentTools/translations)* directory.
@@ -115,7 +116,7 @@ Editable link
 
 ## Files upload
 
-Files are uploaded to `images/` by default.
+By default, files are uploaded to an `images/` directory located at the root of the Pico installation, next to `content/`.
 
 You can define a custom location in the Pico config file with :
 

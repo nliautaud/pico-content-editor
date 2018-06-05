@@ -63,10 +63,12 @@
         try {
           response = JSON.parse(ev.target.responseText);
         } catch (e) {
-          console.log(ev.target.responseText);
+          console.error('PicoContentEditor : UPLOAD ERROR', ev.target.responseText);
           Notify('error', 'There was an error reading the server response');
           return;
         }
+
+        console.log('PicoContentEditor : UPLOADED', response);
 
         // Store the image details
         image = {
@@ -92,7 +94,6 @@
 
       // Build the form data to post to the server
       var file = ev.detail().file;
-      console.log(file);
       var formData = new FormData();
       formData.append('PicoContentEditorUpload', file);
 
@@ -102,6 +103,8 @@
       xhr.addEventListener('readystatechange', xhrComplete);
       xhr.open('POST', '', true);
       xhr.send(formData);
+
+      console.log('PicoContentEditor : UPLOAD', file);
     });
 
     dialog.addEventListener('imageuploader.save', function () {
@@ -112,11 +115,12 @@
       }
       // Trigger the save event against the dialog with details of the
       // image to be inserted.
-      console.log(image);
       dialog.save(image.url, image.size, {
         'alt': image.name,
         'data-ce-max-width': image.width
       });
+
+      console.log('PicoContentEditor : INSERT IMAGE', image);
     });
   }
 
@@ -194,11 +198,13 @@
           } catch (error) {
             // response error
             Notify('error', 'There was an error reading the server response');
-            console.log(ev.target.response);
+            console.error('PicoContentEditor : SAVE ERROR', ev.target.response);
             return;
           }
           if (passive || !response) return;
-          console.log(response);
+
+          console.log('PicoContentEditor : SAVED', response);
+
           // response notifications
           response.status.forEach(status => {
             Notify(status.state ? 'success' : 'warning', status.message);
@@ -224,6 +230,8 @@
       xhr.addEventListener('readystatechange', onStateChange);
       xhr.open('POST', '');
       xhr.send(payload);
+
+      console.log('PicoContentEditor : SAVE', query);
     });
 
     // Translation
