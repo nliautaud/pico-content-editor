@@ -1,16 +1,16 @@
 <?php
-require_once 'vendor/pixel418/markdownify/src/Converter.php'; 
+require_once 'vendor/pixel418/markdownify/src/Converter.php';
 require_once 'vendor/pixel418/markdownify/src/ConverterExtra.php';
 /**
  * A content editor plugin for Pico 2, using ContentTools.
  *
  * Supports PicoUsers plugin for authentification
  * {@link https://github.com/nliautaud/pico-users}
- * 
- * @author	Nicolas Liautaud
- * @link	https://github.com/nliautaud/pico-content-editor
- * @link    http://picocms.org
+ *
+ * @author  Nicolas Liautaud
  * @license http://opensource.org/licenses/MIT The MIT License
+ * @link    https://github.com/nliautaud/pico-content-editor
+ * @link    http://picocms.org
  */
 class PicoContentEditor extends AbstractPicoPlugin
 {
@@ -18,6 +18,7 @@ class PicoContentEditor extends AbstractPicoPlugin
 
     private $edits = null;
     private $upload = null;
+    private $canEdit = true;
     private $canSave = true;
     private $canUpload = true;
 
@@ -32,7 +33,7 @@ class PicoContentEditor extends AbstractPicoPlugin
 
     /**
      * HTML comment used in pages content to define the end of an editable block.
-     * 
+     *
      * @see PicoContentEditor::onContentLoaded()
      * @see PicoContentEditor::getEditableRegions()
      */
@@ -41,7 +42,7 @@ class PicoContentEditor extends AbstractPicoPlugin
     /**
      * Enable php errors reporting when the debug setting is enabled,
      * look for PicoContentEditor save request and editing rights.
-     * 
+     *
      * Triggered after Pico has read its configuration
      *
      * @see    Pico::getConfig()
@@ -50,39 +51,40 @@ class PicoContentEditor extends AbstractPicoPlugin
      */
     public function onConfigLoaded(array &$config)
     {
-        if($this->getConfig('PicoContentEditor.debug')) {
-            ini_set('display_startup_errors',1);
-            ini_set('display_errors',1);
-            error_reporting(-1); 
+        if ($this->getConfig('PicoContentEditor.debug')) {
+            ini_set('display_startup_errors', 1);
+            ini_set('display_errors', 1);
+            error_reporting(-1);
         }
-
-        $this->checkEdits();
-        $this->checkUpload();
-
         // check authentification with PicoUsers
         if (class_exists('PicoUsers')) {
             $PicoUsers = $this->getPlugin('PicoUsers');
+            $this->canEdit = $PicoUsers->hasRight('PicoContentEditor', true);
             $this->canSave = $PicoUsers->hasRight('PicoContentEditor/save');
             $this->canUpload = $PicoUsers->hasRight('PicoContentEditor/upload');
         }
-
         if ($this->edits && !$this->canSave) {
             $this->addStatus(false, 'Authentification error');
         }
         if ($this->upload && !$this->canUpload) {
             $this->addStatus(false, 'Authentification error');
         }
+
+        $this->checkEdits();
+        if ($this->canUpload) {
+            $this->checkUpload();
+        }
     }
     /**
      * Look for edited regions in the page content and save them before
      * removing the end-editable mark. This function would be useless with
      * a better end-editable mark or a better parsin (see below).
-     * 
+     *
      * The end-editable mark @see{PicoContentEditor::ENDMARK} need to be
      * striped away because it's somewhat breaking the page rendering,
      * and thus @see{PicoContentEditor::saveRegions()}  has to be done here
      * in addition to @see{PicoContentEditor::onPageRendered()}.
-     * 
+     *
      * Triggered after Pico has read the contents of the file to serve
      *
      * @see    Pico::getRawContent()
@@ -93,8 +95,12 @@ class PicoContentEditor extends AbstractPicoPlugin
     {
         // save edited regions
         if ($this->edits && $this->canSave) {
-            if ($this->edits->regions) $this->saveRegions($rawContent);
-            if ($this->edits->meta) $this->saveMeta($rawContent);
+            if ($this->edits->regions) {
+                $this->saveRegions($rawContent);
+            }
+            if ($this->edits->meta) {
+                $this->saveMeta($rawContent);
+            }
         }
         // remove the end-editable mark
         $mark = self::ENDMARK;
@@ -112,13 +118,15 @@ class PicoContentEditor extends AbstractPicoPlugin
      */
     public function onPageRendering(&$templateName, array &$twigVariables)
     {
-        if (!$this->canSave) return;
+        if (!$this->canEdit) {
+            return;
+        }
         $pluginUrl = $this->getBaseUrl() . basename($this->getPluginsDir()) . '/PicoContentEditor';
 
         $ContentToolsUrl = rtrim($this->getConfig('PicoContentEditor.ContentToolsUrl'), '/');
         $lang = $this->getConfig('PicoContentEditor.lang');
         $langData = self::getLanguageContent($lang, $ContentToolsUrl);
-        if(!$ContentToolsUrl) {
+        if (!$ContentToolsUrl) {
             $ContentToolsUrl = "$pluginUrl/assets/ContentTools/";
         }
        
@@ -147,19 +155,21 @@ EOF;
      */
     public function onPageRendered(&$output)
     {
-        if (!$this->edits && !$this->upload) return;
+        if (!$this->edits && !$this->upload) {
+            return;
+        }
         
         if ($this->edits && $this->edits->regions && $this->canSave) {
             // save regions from final output, so including blocks in templates.
             // page blocks have been saved in @see self::onContentLoaded
             $this->saveRegions($output);
             // set final status
-            $unsaved = array_filter( $this->edits->regions, function ($e) {
+            $unsaved = array_filter($this->edits->regions, function ($e) {
                 return $e->saved == false;
             });
             if (count($unsaved)) {
                 $this->addStatus(false, 'Not all regions have been saved');
-            } else if (count($this->edits->regions)) {
+            } elseif (count($this->edits->regions)) {
                 $this->addStatus(true, 'All regions have been saved');
             }
         }
@@ -185,8 +195,12 @@ EOF;
      */
     private static function getLanguageContent($lang, $ContentToolsUrl)
     {
-        if(!$lang) return;
-        if(!$ContentToolsUrl) $ContentToolsUrl = __DIR__.'/assets/ContentTools';
+        if (!$lang) {
+            return;
+        }
+        if (!$ContentToolsUrl) {
+            $ContentToolsUrl = __DIR__.'/assets/ContentTools';
+        }
         $path = "$ContentToolsUrl/translations/$lang.json";
         return file_get_contents($path);
     }
@@ -199,12 +213,14 @@ EOF;
     {
         $pattern = "/^(\/(\*)|---)[[:blank:]]*(?:\r)?\n"
             . "(?:(.*?)(?:\r)?\n)?(?(2)\*\/|---)[[:blank:]]*(?:(?:\r)?\n|$)/s";
-        if (preg_match($pattern, $this->getRawContent(), $rawMetaMatches) && isset($rawMetaMatches[3]))
+        if (preg_match($pattern, $this->getRawContent(), $rawMetaMatches)
+        && isset($rawMetaMatches[3])) {
             return $rawMetaMatches[3];
+        }
     }
     /**
      * Adds a status entry.
-     * 
+     *
      * @see PicoContentEditor::$status;
      * @param bool $state
      * @param string $message
@@ -224,15 +240,16 @@ EOF;
      */
     private function checkEdits()
     {
-        if (!isset($_POST['PicoContentEditor'])) return;
-
+        if (!isset($_POST['PicoContentEditor'])) {
+            return;
+        }
         $query = json_decode($_POST['PicoContentEditor']);
 
         $this->edits = new stdClass();
         $this->edits->meta = isset($query->meta) ? $query->meta : null;
         $this->edits->regions = isset($query->regions) ? array() : null;
 
-        foreach($query->regions as $name => $value) {
+        foreach ($query->regions as $name => $value) {
             $this->edits->regions[$name] = (object) array(
                 'value' => $value,
                 'saved' => false,
@@ -252,7 +269,9 @@ EOF;
     {
         $regions = self::getEditableRegions($content);
         foreach ($regions as $region) {
-            if (!isset($this->edits->regions[$region->name])) continue;
+            if (!isset($this->edits->regions[$region->name])) {
+                continue;
+            }
             $this->saveRegion($region, $this->edits->regions[$region->name]);
         }
     }
@@ -297,7 +316,9 @@ EOF;
         // get the source file path as given by a src attribute, or the current page
         if ($hasSrc && !empty($src[1])) {
             $editedRegion->source = $this->getRootDir() . $src[1];
-        } else $editedRegion->source = $this->getRequestFile();
+        } else {
+            $editedRegion->source = $this->getRequestFile();
+        }
 
         if (!file_exists($editedRegion->source)) {
             $editedRegion->message = 'Source file not found';
@@ -309,7 +330,9 @@ EOF;
         $content = str_replace(
             $region->before.$region->content.$region->after,
             $region->before.$editedRegion->value.$region->after,
-            $content, $count);
+            $content,
+            $count
+        );
         if (!$count) {
             $editedRegion->message = 'Error replacing region content';
             return;
@@ -355,11 +378,15 @@ EOF;
      */
     private function checkUpload()
     {
-        if (!isset($_FILES['PicoContentEditorUpload'])) return;
+        if (!isset($_FILES['PicoContentEditorUpload'])) {
+            return;
+        }
 
         $root = $this->getRootDir();
         $path = $this->getConfig('PicoContentEditor.uploadpath');
-        if (!$path) $path = 'images';
+        if (!$path) {
+            $path = 'images';
+        }
 
         $realpath = realpath($root.$path);
         if ($realpath === false || strpos($realpath, $root) !== 0) {
@@ -379,5 +406,3 @@ EOF;
         $this->addStatus(false, 'The file coundn\'t be uploaded');
     }
 }
-
-?>
