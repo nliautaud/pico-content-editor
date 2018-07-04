@@ -2,7 +2,7 @@
 require_once 'vendor/pixel418/markdownify/src/Converter.php'; 
 require_once 'vendor/pixel418/markdownify/src/ConverterExtra.php';
 /**
- * A content editor plugin for Pico, using ContentTools.
+ * A content editor plugin for Pico 2, using ContentTools.
  *
  * Supports PicoUsers plugin for authentification
  * {@link https://github.com/nliautaud/pico-users}
@@ -11,10 +11,11 @@ require_once 'vendor/pixel418/markdownify/src/ConverterExtra.php';
  * @link	https://github.com/nliautaud/pico-content-editor
  * @link    http://picocms.org
  * @license http://opensource.org/licenses/MIT The MIT License
- * @version 0.2.3
  */
 class PicoContentEditor extends AbstractPicoPlugin
 {
+    const API_VERSION = 2;
+
     private $edits = null;
     private $upload = null;
     private $canSave = true;
@@ -37,10 +38,6 @@ class PicoContentEditor extends AbstractPicoPlugin
      */
     const ENDMARK = '<!--\s*end\s+editable\s*-->';
 
-
-
-
-    
     /**
      * Enable php errors reporting when the debug setting is enabled,
      * look for PicoContentEditor save request and editing rights.
@@ -108,14 +105,12 @@ class PicoContentEditor extends AbstractPicoPlugin
      *
      * Triggered before Pico renders the page
      *
-     * @see    Pico::getTwig()
-     * @see    DummyPlugin::onPageRendered()
-     * @param  Twig_Environment &$twig          twig template engine
-     * @param  array            &$twigVariables template variables
-     * @param  string           &$templateName  file name of the template
+     * @see DummyPlugin::onPageRendered()
+     * @param string &$templateName  file name of the template
+     * @param array  &$twigVariables template variables
      * @return void
      */
-    public function onPageRendering(Twig_Environment &$twig, array &$twigVariables, &$templateName)
+    public function onPageRendering(&$templateName, array &$twigVariables)
     {
         if (!$this->canSave) return;
         $pluginUrl = $this->getBaseUrl() . basename($this->getPluginsDir()) . '/PicoContentEditor';

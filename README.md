@@ -16,10 +16,10 @@ Copy the `PicoContentEditor` directory to the `plugins/` directory of your Pico 
 
 Some optional settings can be defined in Pico config file.
 
-```php
-$config['PicoContentEditor.debug'] = false; // enable errors reporting
-$config['PicoContentEditor.lang'] = 'fr'; // language code of a supported language
-$config['PicoContentEditor.ContentToolsUrl'] = 'https://cdn.jsdelivr.net/npm/ContentTools'; // custom ContentTools library location. Uses local files by default.
+```yml
+PicoContentEditor.debug: false    # enable errors reporting
+PicoContentEditor.lang: fr        # language code of a supported language
+PicoContentEditor.ContentToolsUrl: https://cdn.jsdelivr.net/npm/ContentTools # custom ContentTools library location. Uses local files by default.
 ```
 
 The languages supported are listed in the *[translations/](https://github.com/nliautaud/pico-content-editor/tree/master/PicoContentEditor/assets/ContentTools/translations)* directory.
@@ -120,8 +120,8 @@ By default, files are uploaded to an `images/` directory located at the root of 
 
 You can define a custom location in the Pico config file with :
 
-```php
-$config['PicoContentEditor.uploadpath'] = 'assets';
+```yml
+PicoContentEditor.uploadpath: assets
 ```
 
 ## Authentification
@@ -136,17 +136,14 @@ If the [PicoUsers] plugin is installed and detected, actions are automatically r
 
 Configuration example of [PicoUsers] :
 
-```php
-$config['users'] = array(
-    'admin' => '$2y$10$Ym/XYzM9GsCzv3xFTiCea..8.F3xY/BpQISqW6/q3H41SmIK1reZe',
-    'editors' => array(
-        'bill' => '$2y$10$INwdOkshW6dhyVJbZYVm1..PxKc1CQTRG5jF.UaynOPDC6aukfkaa'
-    )
-);
-$config['rights'] = array(
-    'PicoContentEditor' => 'admin',
-    'PicoContentEditor/save' => 'editors',
-);
+```yml
+users:
+    admin: $2y$10$Ym/XYzM9GsCzv3xFTiCea..8.F3xY/BpQISqW6/q3H41SmIK1reZe
+    editors:
+        bill: $2y$10$INwdOkshW6dhyVJbZYVm1..PxKc1CQTRG5jF.UaynOPDC6aukfkaa
+rights:
+    PicoContentEditor: admin
+    PicoContentEditor/save: editors
 ```
 
 [ContentTools]: http://getcontenttools.com
