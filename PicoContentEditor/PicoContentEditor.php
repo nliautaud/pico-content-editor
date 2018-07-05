@@ -135,8 +135,9 @@ class PicoContentEditor extends AbstractPicoPlugin
         }
        
         $twigVariables['content_editor'] = <<<EOF
-        <link href="$pluginUrl/assets/noty/noty.css" rel="stylesheet">
-        <script src="$pluginUrl/assets/noty/noty.min.js" type="text/javascript"></script>
+        <link href="$pluginUrl/assets/noty/lib/noty.css" rel="stylesheet">
+        <link href="$pluginUrl/assets/noty/themes/mint.css" rel="stylesheet">
+        <script src="$pluginUrl/assets/noty/lib/noty.min.js" type="text/javascript"></script>
         <link href="$ContentToolsUrl/build/content-tools.min.css" rel="stylesheet">
         <script src="$ContentToolsUrl/build/content-tools.min.js"></script>
         <link href="$pluginUrl/assets/style.css" rel="stylesheet">

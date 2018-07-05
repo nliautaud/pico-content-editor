@@ -6,3 +6,11 @@
 **/vendor/**/.travis.yml
 **/vendor/**/phpunit.xml
 **/vendor/**/.gitignore
+
+
+**/ContentTools/*
+!**/ContentTools/translations
+!**/ContentTools/build
+!**/ContentTools/LICENSE
+!**/ContentTools/README.md
+!**/ContentTools/package.json
