@@ -8,18 +8,25 @@ A WYSIWYG content editor for [Pico CMS](http://picocms.org).
 - images upload
 - authentification with [PicoUsers]
 
+Demo : https://pico.nliautaud.fr/PicoContentEditor
+
 ## Installation
 
 Copy the `PicoContentEditor` directory to the `plugins/` directory of your Pico Project.
 
 ## Settings
 
-Some optional settings can be defined in Pico config file.
+Settings can be defined site-wide in the Pico config file, defined in a page metadata, or both.
+
+Every setting is optionnal.
 
 ```yml
-PicoContentEditor.debug: false    # enable errors reporting
-PicoContentEditor.lang: fr        # language code of a supported language
-PicoContentEditor.ContentToolsUrl: https://cdn.jsdelivr.net/npm/ContentTools # custom ContentTools library location. Uses local files by default.
+PicoContentEditor:
+    debug: true         # enable errors reporting
+    language: fr        # supported language code
+    uploadpath: myfiles # upload directory (images/ by default)
+    # custom ContentTools library location (local files by default)
+    ContentToolsUrl: https://cdn.jsdelivr.net/npm/ContentTools
 ```
 
 The languages supported are listed in the *[translations/](https://github.com/nliautaud/pico-content-editor/tree/master/PicoContentEditor/assets/ContentTools/translations)* directory.
@@ -116,13 +123,9 @@ Editable link
 
 ## Files upload
 
-By default, files are uploaded to an `images/` directory located at the root of the Pico installation, next to `content/`.
+By default, files uploaded from the editor are saved in an `images/` directory located at the root of the Pico installation, next to `content/`. A custom location can be defined in the settings.
 
-You can define a custom location in the Pico config file with :
-
-```yml
-PicoContentEditor.uploadpath: assets
-```
+The upload directory should exist and be writeable. The plugin will not create it.
 
 ## Authentification
 

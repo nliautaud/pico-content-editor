@@ -27,7 +27,7 @@ class PicoContentEditor extends AbstractPicoPlugin
      * Array of status logs that are returned in the JSON response
      * and used to display status messages on the client.
      *
-     * @see PicoContentEditor::addStatus()
+     * @see self::addStatus()
      * @var array
      */
     private $status = array();
@@ -35,8 +35,8 @@ class PicoContentEditor extends AbstractPicoPlugin
     /**
      * HTML comment used in pages content to define the end of an editable block.
      *
-     * @see PicoContentEditor::onContentLoaded()
-     * @see PicoContentEditor::getEditableRegions()
+     * @see self::onContentLoaded()
+     * @see self::getEditableRegions()
      */
     const ENDMARK = '<!--\s*end\s+editable\s*-->';
 
@@ -84,10 +84,10 @@ class PicoContentEditor extends AbstractPicoPlugin
      * removing the end-editable mark. This function would be useless with
      * a better end-editable mark or a better parsin (see below).
      *
-     * The end-editable mark @see{PicoContentEditor::ENDMARK} need to be
+     * The end-editable mark @see{self::ENDMARK} need to be
      * striped away because it's somewhat breaking the page rendering,
-     * and thus @see{PicoContentEditor::saveRegions()}  has to be done here
-     * in addition to @see{PicoContentEditor::onPageRendered()}.
+     * and thus @see{self::saveRegions()}  has to be done here
+     * in addition to @see{self::onPageRendered()}.
      *
      * Triggered after Pico has read the contents of the file to serve
      *
@@ -127,8 +127,8 @@ class PicoContentEditor extends AbstractPicoPlugin
         }
         $pluginUrl = $this->getBaseUrl() . basename($this->getPluginsDir()) . '/PicoContentEditor';
 
-        $ContentToolsUrl = rtrim($this->getConfig('PicoContentEditor.ContentToolsUrl'), '/');
-        $lang = $this->getConfig('PicoContentEditor.lang');
+        $ContentToolsUrl = rtrim($this->getPluginSetting('ContentToolsUrl'), '/');
+        $lang = $this->getPluginSetting('Language');
         $langData = self::getLanguageContent($lang, $ContentToolsUrl);
         if (!$ContentToolsUrl) {
             $ContentToolsUrl = "$pluginUrl/assets/ContentTools/";
@@ -225,7 +225,7 @@ EOF;
     /**
      * Adds a status entry.
      *
-     * @see PicoContentEditor::$status;
+     * @see self::$status;
      * @param bool $state
      * @param string $message
      * @return void
@@ -238,7 +238,7 @@ EOF;
         );
     }
     /**
-     * Set @see{PicoContentEditor::$edited} according to data sent by the editor.
+     * Set @see{self::$edited} according to data sent by the editor.
      *
      * @return void
      */
@@ -264,8 +264,8 @@ EOF;
     /**
      * Look for editable blocks in the given string and save those who have been edited.
      *
-     * @see PicoContentEditor::getEditableRegions()
-     * @see PicoContentEditor::saveRegion()
+     * @see self::getEditableRegions()
+     * @see self::saveRegion()
      * @param string $content
      * @return void
      */
@@ -302,8 +302,8 @@ EOF;
     /**
      * Save a given region.
      *
-     * @param \stdClass $region The editable block, @see{PicoContentEditor::getEditableRegions()}
-     * @param \stdClass $editedRegion The edited region, @see{PicoContentEditor::$edited}
+     * @param \stdClass $region The editable block, @see{self::getEditableRegions()}
+     * @param \stdClass $editedRegion The edited region, @see{self::$edited}
      * @return void
      */
     private function saveRegion($region, &$editedRegion)
@@ -376,7 +376,7 @@ EOF;
 
     
     /**
-     * Set @see{PicoContentEditor::$edited} according to data sent by the editor.
+     * Set @see{self::$edited} according to data sent by the editor.
      *
      * @return void
      */
@@ -414,13 +414,46 @@ EOF;
      * @return mixed  return the setting value from the page metadata, or from the config file,
      *                or the given default value, or NULL
      */
-    public function getPluginSetting($name, $default = null)
+    private function getPluginSetting($name, $default = null, $caseSensitive = false)
     {
-        $c = get_called_class();
-        $pageMeta = $this->getFileMeta();
-        if (isset($pageMeta[$c]) && isset($pageMeta[$c][$name])) {
-            return $pageMeta[$c][$name];
+        if ($name === null) {
+            return null;
         }
-        return $this->getPluginConfig($name, $default);
+        $c = get_called_class();
+        
+        // from page metadata
+        $pageMeta = $this->getFileMeta();
+        if (!$caseSensitive) {
+            $clow = strtolower($c);
+            $name = strtolower($name);
+            $pageMeta = self::deepArrayKeyCase($pageMeta, CASE_LOWER);
+        }
+        if (isset($pageMeta[$clow]) && isset($pageMeta[$clow][$name])) {
+            return $pageMeta[$clow][$name];
+        }
+
+        // from config file
+        $pluginConfig = $this->getConfig($c, array());
+        if (!$caseSensitive) {
+            $pluginConfig = self::deepArrayKeyCase($pluginConfig, CASE_LOWER);
+        }
+        return isset($pluginConfig[$name]) ? $pluginConfig[$name] : $default;
+    }
+
+    /**
+     * Change the case of every array keys, recursively.
+     *
+     * @param array $arr
+     * @param CASE_UPPER|CASE_LOWER $case
+     * @return array
+     */
+    private static function deepArrayKeyCase($arr, $case)
+    {
+        return array_map(function ($item) use ($case) {
+            if (is_array($item)) {
+                $item = self::deepArrayKeyCase($item, $case);
+            }
+            return $item;
+        }, array_change_key_case($arr, $case));
     }
 }
