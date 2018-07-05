@@ -21,6 +21,7 @@ class PicoContentEditor extends AbstractPicoPlugin
     private $canEdit = true;
     private $canSave = true;
     private $canUpload = true;
+    private $uploadedFile = null;
 
     /**
      * Array of status logs that are returned in the JSON response
@@ -63,16 +64,19 @@ class PicoContentEditor extends AbstractPicoPlugin
             $this->canSave = $PicoUsers->hasRight('PicoContentEditor/save');
             $this->canUpload = $PicoUsers->hasRight('PicoContentEditor/upload');
         }
-        if ($this->edits && !$this->canSave) {
-            $this->addStatus(false, 'Authentification error');
-        }
-        if ($this->upload && !$this->canUpload) {
-            $this->addStatus(false, 'Authentification error');
+
+        $this->processEdits();
+
+        if (isset($_FILES['PicoContentEditorUpload'])) {
+            $this->uploadedFile = $_FILES['PicoContentEditorUpload'];
+            $this->processUpload();
         }
 
-        $this->checkEdits();
-        if ($this->canUpload) {
-            $this->checkUpload();
+        if ($this->edits && !$this->canSave) {
+            $this->addStatus(false, 'Authentification : you don\'t have the rights to save content');
+        }
+        if ($this->uploadedFile && !$this->canUpload) {
+            $this->addStatus(false, 'Authentification : you don\'t have the rights to upload files');
         }
     }
     /**
@@ -155,7 +159,7 @@ EOF;
      */
     public function onPageRendered(&$output)
     {
-        if (!$this->edits && !$this->upload) {
+        if (!$this->edits && !$this->uploadedFile) {
             return;
         }
         
@@ -179,7 +183,7 @@ EOF;
         $response->status = $this->status;
         $response->edited = $this->edits;
         $response->file = $this->upload;
-        $response->debug = $this->getConfig('PicoContentEditor.debug');
+        $response->debug = $this->getPluginSetting('debug');
         $output = json_encode($response);
     }
 
@@ -238,7 +242,7 @@ EOF;
      *
      * @return void
      */
-    private function checkEdits()
+    private function processEdits()
     {
         if (!isset($_POST['PicoContentEditor'])) {
             return;
@@ -376,27 +380,23 @@ EOF;
      *
      * @return void
      */
-    private function checkUpload()
+    private function processUpload()
     {
-        if (!isset($_FILES['PicoContentEditorUpload'])) {
+        if (!$this->uploadedFile || !$this->canUpload) {
             return;
         }
 
         $root = $this->getRootDir();
-        $path = $this->getConfig('PicoContentEditor.uploadpath');
-        if (!$path) {
-            $path = 'images';
-        }
+        $path = $this->getPluginSetting('uploadpath', 'images');
 
         $realpath = realpath($root.$path);
         if ($realpath === false || strpos($realpath, $root) !== 0) {
-            $this->addStatus(false, 'The upload directory is missing or invalid');
+            $this->addStatus(false, "The upload directory \"$path\" is missing or invalid");
             return;
         }
 
-        $file = $_FILES['PicoContentEditorUpload'];
-        $filename =  '/' . basename($file['name']);
-        if (move_uploaded_file($file['tmp_name'], $realpath.$filename)) {
+        $filename =  '/' . basename($this->uploadedFile['name']);
+        if (move_uploaded_file($this->uploadedFile['tmp_name'], $realpath.$filename)) {
             $this->addStatus(true, 'The file have been uploaded');
             $this->upload['name'] = $filename;
             $this->upload['path'] = $this->getBaseUrl().$path.$filename;
@@ -404,5 +404,23 @@ EOF;
             return;
         }
         $this->addStatus(false, 'The file coundn\'t be uploaded');
+    }
+
+    /**
+     * Return a plugin setting, either on the page metadata or on the pico config file.
+     *
+     * @param string $name   name of a setting
+     * @param mixed $default optional default value to return when the setting doesn't exist
+     * @return mixed  return the setting value from the page metadata, or from the config file,
+     *                or the given default value, or NULL
+     */
+    public function getPluginSetting($name, $default = null)
+    {
+        $c = get_called_class();
+        $pageMeta = $this->getFileMeta();
+        if (isset($pageMeta[$c]) && isset($pageMeta[$c][$name])) {
+            return $pageMeta[$c][$name];
+        }
+        return $this->getPluginConfig($name, $default);
     }
 }

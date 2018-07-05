@@ -68,19 +68,23 @@
           return;
         }
 
-        console.log('PicoContentEditor : UPLOADED', response);
+        if (response.debug) {
+          console.log('PicoContentEditor : UPLOAD RESPONSE', response);
+        }
 
-        // Store the image details
-        image = {
-          url: response.file.path,
-          name: response.file.name,
-          width: parseInt(response.file.size[0]),
-          height: parseInt(response.file.size[1])
-        };
-        image.size = [image.width, image.height];
+        if (response.file) {
+          // Store the image details
+          image = {
+            url: response.file.path,
+            name: response.file.name,
+            width: parseInt(response.file.size[0]),
+            height: parseInt(response.file.size[1])
+          };
+          image.size = [image.width, image.height];
 
-        // Populate the dialog
-        dialog.populate(image.url, image.size);
+          // Populate the dialog
+          dialog.populate(image.url, image.size);
+        }
 
         // response notifications
         response.status.forEach(status => {
@@ -203,14 +207,16 @@
           }
           if (passive || !response) return;
 
-          console.log('PicoContentEditor : SAVED', response);
+          if (response.debug) {
+            console.log('PicoContentEditor : SAVE RESPONSE', response);
+          }
 
           // response notifications
           response.status.forEach(status => {
             Notify(status.state ? 'success' : 'warning', status.message);
           });
           // debug notifications
-          if (response.edited.regions) {
+          if (response.debug && response.edited.regions) {
             var i = 0;
             for (var id in response.edited.regions) {
               var region = response.edited.regions[id],
