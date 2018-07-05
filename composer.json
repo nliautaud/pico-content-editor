@@ -1,0 +1,34 @@
+{
+  "name": "nliautaud/pico-content-editor",
+  "type": "pico-plugin",
+  "description": "A WYSIWYG content editor plugin for Pico CMS",
+  "keywords": [ "pico", "picocms", "picocms-plugin", "pico-content-editor", "editor"],
+  "homepage": "http://picocms.org/",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Nicolas Liautaud",
+      "homepage": "https://github.com/nliautaud/pico-content-editor",
+      "role": "Lead Developer"
+    },
+    {
+      "name": "Contributors",
+      "homepage": "https://github.com/nliautaud/pico-content-editor/graphs/contributors"
+    }
+  ],
+  "support": {
+    "docs": "https://github.com/nliautaud/pico-content-editor/blob/master/README.md",
+    "issues": "https://github.com/nliautaud/pico-content-editor/issues",
+    "source": "https://github.com/nliautaud/pico-content-editor"
+  },
+  "require": {
+    "php": ">=5.4.0",
+    "pixel418/markdownify": "^2.3"
+  },
+  "config": {
+    "vendor-dir": "PicoContentEditor/vendor"
+  },
+  "autoload": {
+    "classmap": [ "PicoContentEditor/PicoContentEditor.php" ]
+  }
+}

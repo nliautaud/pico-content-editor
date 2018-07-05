@@ -1,1 +1,8 @@
 .vscode
+
+**/vendor/autoload.php
+**/vendor/composer
+**/vendor/**/test
+**/vendor/**/.travis.yml
+**/vendor/**/phpunit.xml
+**/vendor/**/.gitignore
