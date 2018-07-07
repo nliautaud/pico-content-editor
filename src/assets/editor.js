@@ -174,9 +174,10 @@
           delete query.regions[name];
           return;
         }
-        if (regions[name].type() == 'Fixture')
-          query.regions[name] = el.innerHTML;
-        else query.regions[name] = regions[name].html();
+        query.regions[name] = {
+          markdown: el.dataset.editable == 'markdown',
+          html: regions[name].type() == 'Fixture' ? el.innerHTML : regions[name].html()
+        };
       });
 
       // Set the editors state to busy while we save our changes
@@ -202,7 +203,7 @@
           } catch (error) {
             // response error
             Notify('error', 'There was an error reading the server response');
-            console.error('PicoContentEditor : SAVE ERROR', ev.target.response);
+            console.error('PicoContentEditor : SAVE ERROR\n', ev.target.response);
             return;
           }
           if (passive || !response) return;
@@ -216,18 +217,18 @@
             Notify(status.state ? 'success' : 'warning', status.message);
           });
           // debug notifications
-          if (response.debug && response.edited.regions) {
+          if (response.debug) {
             var i = 0;
-            for (var id in response.edited.regions) {
-              var region = response.edited.regions[id],
-                source = region.source ? `(<em>${region.source.split(/[\\/]/).pop()}</em>)` : '';
+            response.edited.regions.forEach(region => {
+              var source = region.source ? `(<em>${region.source.split(/[\\/]/).pop()}</em>)` : '';
+              if (!region.message) return;
               setTimeout(function () {
                 Notify(
                   region.saved ? 'success' : 'error',
-                  `<strong>Debug</strong><br><em>${id}</em> : ${region.message} ${source}`
+                  `<strong>Debug</strong><br><em>${region.name}</em> : ${region.message} ${source}`
                 );
               }, 50 * ++i);
-            }
+            });
           }
         }
       };

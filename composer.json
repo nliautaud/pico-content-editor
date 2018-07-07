@@ -23,12 +23,11 @@
   },
   "require": {
     "php": ">=5.4.0",
-    "pixel418/markdownify": "^2.3"
-  },
-  "config": {
-    "vendor-dir": "PicoContentEditor/vendor"
+    "pixel418/markdownify": "^2.3",
+    "deanblackborough/php-quill-renderer": "^1.01"
   },
   "autoload": {
-    "classmap": [ "PicoContentEditor/PicoContentEditor.php" ]
+    "psr-4": { "PicoContentEditor\\": "src/" },
+    "classmap": [ "PicoContentEditor.php" ]
   }
 }

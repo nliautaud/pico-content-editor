@@ -1,0 +1,30 @@
+{
+    "name": "deanblackborough/php-quill-renderer",
+    "description": "Render quill insert deltas to HTML and soon markdown",
+    "autoload": {
+        "psr-4" : {
+            "DBlackborough\\Quill\\" : "src/"
+        }
+    },
+    "homepage": "https://github.com/deanblackborough/php-quill-renderer",
+    "keywords": [ "quill", "quilljs", "renderer", "delta", "parse", "html"],
+    "authors": [
+        {
+            "name": "Dean Blackborough",
+            "email": "dean@g3d-development.com"
+        }
+    ],
+    "require": {
+        "php": "^5.6 || ^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/deanblackborough/php-quill-renderer"
+        }
+    ],
+    "license": "MIT"
+}
