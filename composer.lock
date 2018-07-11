@@ -4,8 +4,56 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aee794690c6a4bd29198eb8536b087be",
+    "content-hash": "0a528300e084e082ba03c31f602f9b30",
     "packages": [
+        {
+            "name": "deanblackborough/php-quill-renderer",
+            "version": "v1.01.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/deanblackborough/php-quill-renderer.git",
+                "reference": "dd3fcade9987e94182e9faec2aa1ac3628338885"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/deanblackborough/php-quill-renderer/zipball/dd3fcade9987e94182e9faec2aa1ac3628338885",
+                "reference": "dd3fcade9987e94182e9faec2aa1ac3628338885",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.6 || ^7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "DBlackborough\\Quill\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dean Blackborough",
+                    "email": "dean@g3d-development.com"
+                }
+            ],
+            "description": "Render quill insert deltas to HTML and soon markdown",
+            "homepage": "https://github.com/deanblackborough/php-quill-renderer",
+            "keywords": [
+                "delta",
+                "html",
+                "parse",
+                "quill",
+                "quilljs",
+                "renderer"
+            ],
+            "time": "2017-09-11T14:00:03+00:00"
+        },
         {
             "name": "pixel418/markdownify",
             "version": "v2.3.0",

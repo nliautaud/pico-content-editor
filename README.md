@@ -12,16 +12,27 @@ Demo : https://pico.nliautaud.fr/PicoContentEditor
 
 ## Installation
 
-Copy the `PicoContentEditor` directory to the `plugins/` directory of your Pico Project.
+Download the repository, name the main folder `PicoContentEditor` and copy it into the `plugins/` directory of your Pico project.
+
+    plugins/
+        PicoContentEditor/
+            src/
+            vendor/
+            ...
+
+Or, if you installed Pico with composer :
+
+    composer require nliautaud/pico-content-editor
 
 ## Settings
 
-Settings can be defined site-wide in the Pico config file, defined in a page metadata, or both.
+Settings can be defined in the Pico config file, in a page metadata, or both. The page metadata settings will override the site-wide ones.
 
 Every setting is optionnal.
 
 ```yml
 PicoContentEditor:
+    show: true          # show/hide the editor
     debug: true         # enable errors reporting
     language: fr        # supported language code
     uploadpath: myfiles # upload directory (images/ by default)
@@ -52,14 +63,12 @@ The following content is editable :
     <p>Edit me!</p>
 </div><!--end editable-->
 
-This one too, and will be converted back to markdown on saving :
+This one will be converted back to markdown on saving :
 
-<div data-editable data-name="pages-secondary-content" markdown=1>
+<div data-editable data-name="pages-secondary-content" data-markdown markdown=1>
     - One
     - Two
     - Three
-
-    This content will be saved in *markdown*.
 </div><!--end editable-->
 ```
 
@@ -83,16 +92,9 @@ For exemple, the following code could be the content of a `footer.twig` file in 
 
 ```html
 <footer id="footer">
-    <div class="inner">
-        <div class="social">
-            {% for social in meta.social %}
-                <a href="{{ social.url }}" title="{{ social.title }}"><span class="icon-{{ social.icon }}"></span></a>
-            {% endfor %}
-        </div>
-        <div data-editable data-name="footer" data-src="themes/mytheme/footer.twig">
-            <p>Edit me !</p>
-        </div><!--end editable-->
-    </div>
+    <div data-editable data-name="footer" data-src="themes/mytheme/footer.twig">
+        <p>Edit me !</p>
+    </div><!--end editable-->
 </footer>
 ```
 
@@ -120,6 +122,8 @@ Editable link
     <img src="image.png" alt="Some image">
 </div><!--end editable-->
 ```
+
+See [ContentTools] for further info.
 
 ## Files upload
 
