@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> Hello, this project is not maintained and archived. Its content is probably obsolete.
+
 # Pico Content Editor
 
 A WYSIWYG content editor for [Pico CMS](http://picocms.org).
